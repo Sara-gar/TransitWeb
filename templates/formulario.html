@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generar Mapa</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>Seleccione Ubicación y Destino</h1>
+    <form action="/generar_mapa" method="post">
+        <label for="origen">Ubicación Actual:</label>
+        <select name="origen" id="origen">
+            {% for barrio, coords in barrios.items() %}
+            <option value="{{ barrio }}">{{ barrio }}</option>
+            {% endfor %}
+        </select>
+        <label for="destino">Destino:</label>
+        <select name="destino" id="destino">
+            {% for barrio, coords in barrios.items() %}
+            <option value="{{ barrio }}">{{ barrio }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Generar Mapa</button>
+    </form>
+    <footer>Generado por Flask - Folium</footer>
+</body>
+</html>
