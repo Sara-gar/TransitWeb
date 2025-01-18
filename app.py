@@ -5,53 +5,6 @@ import os
 
 app = Flask(__name__)
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Usar el puerto de Render o 5000 por defecto
-    app.run(host='0.0.0.0', port=port, debug=True)
-
-@app.route('/')
-def home():
-    return render_template('formulario.html', barrios=barrios)
-
-@app.route('/generar_mapa', methods=['POST'])
-def generar_mapa():
-    # Obtener la ubicación y destino seleccionados
-    origen = request.form.get('origen')
-    destino = request.form.get('destino')
-
-    ubicacion_usuario = barrios[origen]
-    ubicacion_destino = barrios[destino]
-
-    # Calcular los tres paraderos más cercanos
-    distancias = []
-    for nombre, info in paraderos.items():
-        coordenadas = info["coordenadas"]
-        distancia = calcular_distancia(ubicacion_usuario, coordenadas)
-        minutos, segundos = calcular_tiempo(distancia)
-        distancias.append((nombre, distancia, info["descripcion"], minutos, segundos))
-
-    distancias.sort(key=lambda x: x[1])
-    top_3_paraderos = distancias[:3]
-
-    # Generar el mapa
-    mapa = folium.Map(location=ubicacion_usuario, zoom_start=14)
-    folium.Marker(ubicacion_usuario, tooltip='Ubicación Actual').add_to(mapa)
-    folium.Marker(ubicacion_destino, tooltip='Destino').add_to(mapa)
-    folium.PolyLine([ubicacion_usuario, ubicacion_destino], color='green', tooltip='Ruta Origen-Destino').add_to(mapa)
-    for nombre, distancia, descripcion, minutos, segundos in top_3_paraderos:
-        folium.Marker(paraderos[nombre]["coordenadas"], tooltip=f"{nombre}: {descripcion} - Tiempo estimado: {minutos} minutos y {segundos} segundos").add_to(mapa)
-        folium.PolyLine([ubicacion_usuario, paraderos[nombre]["coordenadas"]], color='blue').add_to(mapa)
-
-    # Añadir la ruta del bus
-    folium.PolyLine(ruta_bus, color='red', tooltip='Ruta del Bus').add_to(mapa)
-
-    # Guardar el mapa
-    mapa_path = os.path.join('static', 'ruta.html')
-    mapa.save(mapa_path)
-
-    return render_template('mapa.html', mapa_url=mapa_path)
-
-
 # Coordenadas de los barrios
 # Coordenadas de los barrios con nombres
 barrios = {
@@ -430,6 +383,49 @@ def calcular_tiempo(distancia):
     segundos = int((tiempo_minutos - minutos) * 60)
     return minutos, segundos
 
+@app.route('/')
+def home():
+    return render_template('formulario.html', barrios=barrios)
+
+@app.route('/generar_mapa', methods=['POST'])
+def generar_mapa():
+    # Obtener la ubicación y destino seleccionados
+    origen = request.form.get('origen')
+    destino = request.form.get('destino')
+
+    ubicacion_usuario = barrios[origen]
+    ubicacion_destino = barrios[destino]
+
+    # Calcular los tres paraderos más cercanos
+    distancias = []
+    for nombre, info in paraderos.items():
+        coordenadas = info["coordenadas"]
+        distancia = calcular_distancia(ubicacion_usuario, coordenadas)
+        minutos, segundos = calcular_tiempo(distancia)
+        distancias.append((nombre, distancia, info["descripcion"], minutos, segundos))
+
+    distancias.sort(key=lambda x: x[1])
+    top_3_paraderos = distancias[:3]
+
+    # Generar el mapa
+    mapa = folium.Map(location=ubicacion_usuario, zoom_start=14)
+    folium.Marker(ubicacion_usuario, tooltip='Ubicación Actual').add_to(mapa)
+    folium.Marker(ubicacion_destino, tooltip='Destino').add_to(mapa)
+    folium.PolyLine([ubicacion_usuario, ubicacion_destino], color='green', tooltip='Ruta Origen-Destino').add_to(mapa)
+    for nombre, distancia, descripcion, minutos, segundos in top_3_paraderos:
+        folium.Marker(paraderos[nombre]["coordenadas"], tooltip=f"{nombre}: {descripcion} - Tiempo estimado: {minutos} minutos y {segundos} segundos").add_to(mapa)
+        folium.PolyLine([ubicacion_usuario, paraderos[nombre]["coordenadas"]], color='blue').add_to(mapa)
+
+    # Añadir la ruta del bus
+    folium.PolyLine(ruta_bus, color='red', tooltip='Ruta del Bus').add_to(mapa)
+
+    # Guardar el mapa
+    mapa_path = os.path.join('static', 'ruta.html')
+    mapa.save(mapa_path)
+
+    return render_template('mapa.html', mapa_url=mapa_path)
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))  # Puerto proporcionado por Render
+    app.run(host='0.0.0.0', port=port, debug=True)
