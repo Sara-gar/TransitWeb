@@ -384,7 +384,11 @@ def calcular_tiempo(distancia):
     return minutos, segundos
 
 @app.route('/')
-def home():
+def index():
+    return render_template('index.html')
+
+@app.route('/formulario')
+def formulario():
     return render_template('formulario.html', barrios=barrios)
 
 @app.route('/generar_mapa', methods=['POST'])
